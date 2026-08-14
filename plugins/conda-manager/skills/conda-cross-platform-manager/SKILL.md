@@ -2,18 +2,10 @@
 name: conda-cross-platform-manager
 description: >
   Enforces YAML-first approach for managing conda environments and exports clean conda environments to be used by other users regardless of OS.
-compatibility: 
-  tools:
-    - conda
-  os:
-    - darwin
-    - windows
-    - linux
-  shell:
-    - bash
+version: "1.0"
+compatibility: Requires conda and bash. Works on darwin, windows, and linux.
 metadata:
   author: ryz
-  version: 1.0
 triggers:
   - install package
   - export conda environment
