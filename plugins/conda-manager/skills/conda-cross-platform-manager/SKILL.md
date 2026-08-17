@@ -2,6 +2,8 @@
 name: conda-cross-platform-manager
 description: >
   Enforces YAML-first approach for managing conda environments and exports clean conda environments to be used by other users regardless of OS.
+  Also use this whenever conda itself is missing: if `conda` is not on PATH or a command fails with "conda: command not found", this skill installs
+  it. Do not conclude that conda is unavailable, and do not install it by hand, without reading this skill first.
 version: "1.0"
 compatibility: Requires bash. conda is bootstrapped automatically when absent on Linux sandboxes; on darwin and windows conda must already be installed.
 metadata:
@@ -12,7 +14,13 @@ triggers:
   - save conda environment
   - update environment
   - share environment
-  - remove dependency 
+  - remove dependency
+  - conda not found
+  - conda command not found
+  - conda is not installed
+  - install conda
+  - create conda environment
+  - conda --version
 ---
 
 # Conda Cross-Platform Manager
