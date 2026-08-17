@@ -20,6 +20,97 @@ No agent code changes, no image rebuild and no redeploy. Agents move
 to your new plugin whenever *they* bump the tag they're pinned to, it never
 happens automatically underneath them.
 
+## What runs your plugin
+
+Plugins in this catalog execute inside a prebuilt sandbox image. You do **not**
+build or modify that image to contribute, but you do need to know what is
+already in it, because that determines whether your plugin can ship today or
+has to wait for an image bump.
+
+### Two clocks
+
+This catalog and the sandbox image are versioned separately and released on
+deliberately different cadences. Keeping them independent is the point of the
+design: it is what lets you ship a plugin without a rebuild or a redeploy.
+
+| Artifact | Version | Cadence | Changed by |
+| --- | --- | --- | --- |
+| This catalog | `v0.1.2` | Weekly — whenever a PR merges | Anyone, via PR |
+| Sandbox image | `conda-1.42.0` | Quarterly, or on demand for a blocker | Platform owner |
+
+A normal contribution touches only the left column: add a directory under
+`plugins/`, add an entry to `marketplace.json`, open a PR, tag a release.
+Consumers pick up your
+plugin when they bump their pinned `CATALOG_REF`.
+
+### What is already in the image
+
+- `agent-server` 1.42.0 (Python)
+- `conda` (Miniforge) at `/opt/conda`
+- `git`, `curl`
+- a C/C++ build toolchain
+- `node` + `npm` / `npx`
+- `uv` / `uvx`
+
+### The one question to answer before you open a PR
+
+> **Does this plugin need anything installable only as root?**
+
+The sandbox runs as the unprivileged `openhands` user. That has three
+consequences worth internalising, because they decide the answer:
+
+- `apt-get install` **will not work at runtime.** No root, no package manager.
+- `/opt/conda` is world-readable but **not writable**, so `conda install` into
+  the base environment fails. Create your own prefix instead:
+  `conda create -p "$HOME/envs/<name>" …`
+- `$HOME` **is** writable. Anything you can install into your home directory is
+  fair game at conversation time.
+
+Work down this list and stop at the first option that works. Almost everything
+lands on 1 or 2.
+
+**1. Ship it as an MCP server. No image involvement at all.**
+If the capability can be expressed as an MCP server launched by `uvx` or `npx`,
+declare it in your plugin's `.mcp.json` and you are done. It installs at turn
+time. This is the default answer for new capability, and it is the only route
+by which an extension's `.mcp.json` is actually wired in — a bare skill's is
+loaded and then ignored.
+
+```json
+{
+  "mcpServers": {
+    "my-tool": { "transport": "stdio", "command": "uvx", "args": ["my-mcp-tool"] }
+  }
+}
+```
+
+**2. Install into a conda environment under `$HOME` at conversation time.**
+For language runtimes and CLI tools; ruby, a pinned Python, a compiler
+toolchain; have your skill create a prefix in `$HOME` on first use. This costs
+some seconds on a cold conversation and nothing on an image rebuild. Conda is
+in the image precisely so that this route stays open for things nobody
+anticipated.
+
+**3. Request an image layer. The slow path.**
+Only if 1 and 2 genuinely cannot work: a system library, an apt package, a
+setuid binary, anything requiring root. Open an issue labelled `needs-image`
+describing what you need and why the first two options fail. Do not open a PR
+against the image; these are **batched and shipped quarterly** so that the
+image tag stays stable and every consumer is not chasing a moving base.
+
+If you are blocked on a `needs-image` request, say so in the issue. Genuine
+blockers get an out-of-band bump, but the default is to wait for the batch,
+and most requests turn out to be option 2 in disguise.
+
+### Custom Python tools are out of scope
+
+Tools registered via `register_tool()` run in-process inside the agent-server,
+so they must be compiled into the image, which requires a different image
+target and an SDK checkout as a permanent build dependency. That moves the
+extension point off this catalog's weekly clock and onto the image's quarterly
+one, and it is why this catalog does not accept them. Use an MCP server.
+
+
 ## Step by step: adding a plugin
 
 Say you want to add a plugin called `db-tools`.
