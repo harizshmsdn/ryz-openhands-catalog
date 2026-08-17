@@ -1,14 +1,14 @@
 # OpenHands Catalog
 
 This repo is the shared toolbox for our OpenHands agents. If you want the agent
-to know how to do something new — run a specific tool, follow a team
-convention, call an internal service — you add it here. You don't touch any
+to know how to do something new, run a specific tool, follow a team
+convention, call an internal service; you add it here. You don't touch any
 agent's code, and nobody has to rebuild a Docker image.
 
 Every agent on the team points at this repo (pinned to a release tag) and
 picks up whatever's published here.
 
-## Contributing something — the short version
+## Contributing something. The short version
 
 1. Make a folder under `plugins/` for your thing.
 2. Add one required file: `.plugin/plugin.json`.
@@ -16,8 +16,8 @@ picks up whatever's published here.
 4. Open a PR.
 5. Once merged, tag a release.
 
-That's it. No agent code changes, no image rebuild, no redeploy. Agents move
-to your new plugin whenever *they* bump the tag they're pinned to — it never
+No agent code changes, no image rebuild and no redeploy. Agents move
+to your new plugin whenever *they* bump the tag they're pinned to, it never
 happens automatically underneath them.
 
 ## Step by step: adding a plugin
@@ -35,8 +35,8 @@ plugins/db-tools/
         └── SKILL.md
 ```
 
-Only `plugin.json` is required. Everything else — `skills/`, `agents/`,
-`commands/`, `hooks/hooks.json`, `.mcp.json` — is optional, and you can add
+Only `plugin.json` is required. Everything else, `skills/`, `agents/`,
+`commands/`, `hooks/hooks.json`, `.mcp.json` is optional, and you can add
 it later without restructuring anything.
 
 **2. Write `plugin.json`**
@@ -53,13 +53,13 @@ it later without restructuring anything.
 }
 ```
 
-Only `name` is required — the rest have sensible defaults. `license` and
+Only `name` is required. The rest have sensible defaults. `license` and
 `repository` are also fine to add if relevant; extra fields don't break
 anything.
 
 **3. Write your skill**
 
-`skills/db-tools/SKILL.md` is a normal skill file — instructions in Markdown
+`skills/db-tools/SKILL.md` is a normal skill file instructions in Markdown
 that tell the agent when and how to use this capability. If you've written a
 skill before, this part is identical.
 
@@ -81,7 +81,7 @@ CLI), add `.mcp.json` at the plugin root:
 
 > **Important:** `.mcp.json` only does anything when it's at the **plugin
 > root**, next to `plugin.json`. It does nothing useful inside a bare skill
-> folder that isn't part of a plugin — the agent will never connect to that
+> folder that isn't part of a plugin. The agent will never connect to that
 > server. If your addition needs an MCP server, it must be a plugin, not a
 > standalone skill.
 
@@ -106,7 +106,7 @@ Open `.plugin/marketplace.json` at the repo root and add your plugin to the
 }
 ```
 
-This file is the index — it's how agents discover that `db-tools` exists at
+This file is the index. It's how agents discover that `db-tools` exists at
 all. Forgetting this step is the most common way a new plugin "silently
 doesn't show up."
 
@@ -118,7 +118,7 @@ mergeable.
 ## Releasing a new version
 
 Agents don't automatically get new plugins the moment they're merged to
-`main` — they're pinned to a git tag on purpose, so a working setup never
+`main` . They're pinned to a git tag on purpose, so a working setup never
 breaks under someone's feet. To actually ship what's in `main`:
 
 ```bash
@@ -128,8 +128,7 @@ git tag v0.2.0
 git push origin v0.2.0
 ```
 
-Pick the next version number up from whatever the last tag was. There's no
-special tooling here — a tag is just a tag, like any other git repo.
+Pick the next version number up from whatever the last tag was. A tag is just a tag, like any other git repo.
 
 Anyone who wants your new plugin now updates the version their agent points
 at (usually one line, e.g. `CATALOG_REF = "v0.2.0"`) and redeploys/restarts
@@ -171,4 +170,4 @@ structure; `.mcp.json` is only honored at the plugin root.
 
 **How do I know what tag an agent is currently using?**
 Ask whoever owns that agent, or check its config for a `CATALOG_REF` (or
-similarly named) constant — that's the pinned version it's running against.
+similarly named) constant. That's the pinned version it's running against.
